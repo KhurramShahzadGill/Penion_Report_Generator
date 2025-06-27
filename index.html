@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pension Report Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Poppins', 'Inter', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .form-container {
+            background-color: white;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+        .report-container {
+             background-color: white; /* Explicitly white background */
+             border-radius: 1.5rem;
+             box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+        .input-group {
+            position: relative;
+        }
+        .input-field {
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            width: 100%;
+            transition: border-color 0.2s;
+            background-color: #f8fafc;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+        }
+        .input-label {
+            position: absolute;
+            left: 1rem;
+            top: 0.75rem;
+            color: #64748b;
+            background-color: #f8fafc;
+            padding: 0 0.25rem;
+            transition: all 0.2s ease-out;
+            pointer-events: none;
+        }
+        .input-field:focus + .input-label,
+        .input-field:not(:placeholder-shown) + .input-label {
+            top: -0.6rem;
+            left: 0.75rem;
+            font-size: 0.75rem;
+            color: #4f46e5;
+        }
+        /* Report specific styles */
+        .report-content {
+            color: #000000; /* Setting default font color to dark black for the report */
+        }
+        .report-content table td:first-child {
+            font-weight: 600;
+        }
+         .report-content table td {
+            padding-top: 0.6rem;
+            padding-bottom: 0.6rem;
+            word-break: break-word; /* Helps in wrapping long text in tables */
+        }
+        .report-content .highlight-row {
+            background-color: #eef2ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <div class="text-center mb-10">
+            <h1 class="text-3xl md:text-5xl font-bold text-gray-800 tracking-tight">Pension Report Generator</h1>
+            <p class="text-gray-500 mt-3 text-base md:text-lg">A modern tool to streamline pension case preparation.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-10">
+            <div class="lg:col-span-2 form-container h-fit">
+                <h2 class="text-2xl font-bold mb-6 text-gray-700">Employee Information</h2>
+                <form id="pension-form" class="space-y-6">
+                    <div class="input-group">
+                        <input type="text" id="empName" class="input-field" placeholder=" ">
+                        <label for="empName" class="input-label">Employee Name</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" id="fatherName" class="input-field" placeholder=" ">
+                        <label for="fatherName" class="input-label">Father's Name</label>
+                    </div>
+                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="input-group">
+                            <input type="text" id="designation" class="input-field" placeholder=" ">
+                            <label for="designation" class="input-label">Designation</label>
+                        </div>
+                        <div class="input-group">
+                           <input type="number" id="bps" class="input-field" placeholder=" ">
+                            <label for="bps" class="input-label">BPS</label>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" id="department" class="input-field" placeholder=" ">
+                        <label for="department" class="input-label">Department</label>
+                    </div>
+                   
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="input-group">
+                           <input type="date" id="dob" class="input-field" placeholder=" ">
+                           <label for="dob" class="input-label">Date of Birth</label>
+                        </div>
+                        <div class="input-group">
+                            <input type="date" id="doa" class="input-field" placeholder=" ">
+                           <label for="doa" class="input-label">Date of Appointment</label>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="retirementType" class="text-sm font-medium text-gray-700">Retirement Type</label>
+                        <select id="retirementType" class="w-full mt-1 input-field">
+                            <option value="superannuation">Superannuation</option>
+                            <option value="volunteer">Volunteer Retirement</option>
+                            <option value="death">Death</option>
+                        </select>
+                    </div>
+                    <div id="dor-container" class="input-group">
+                        <input type="date" id="dor" class="input-field" placeholder=" ">
+                        <label for="dor" class="input-label">Date of Retirement / Death</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="number" id="eol" value="0" class="input-field" placeholder=" ">
+                        <label for="eol" class="input-label">EOL Period (in days)</label>
+                    </div>
+                    <div class="border-t pt-6 mt-6">
+                        <h3 class="text-lg font-semibold text-gray-700">Last 3 Years' Basic Pay (in July)</h3>
+                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+                            <div class="input-group">
+                                <input type="number" id="pay1" class="input-field" placeholder=" ">
+                                <label for="pay1" class="input-label">Year 1</label>
+                            </div>
+                             <div class="input-group">
+                                <input type="number" id="pay2" class="input-field" placeholder=" ">
+                                <label for="pay2" class="input-label">Year 2</label>
+                            </div>
+                             <div class="input-group">
+                                <input type="number" id="pay3" class="input-field" placeholder=" ">
+                                <label for="pay3" class="input-label">Year 3</label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="lg:col-span-3">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+                     <h2 class="text-2xl font-bold text-gray-700 mb-3 sm:mb-0">Report Preview</h2>
+                     <button id="downloadPdf" class="bg-indigo-600 w-full sm:w-auto text-white font-bold py-2 px-5 rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Download PDF
+                    </button>
+                </div>
+                <div id="report-preview-pdf" class="report-container p-4 sm:p-8 md:p-10 report-content">
+                    <div class="text-center text-gray-500 p-10">
+                        <p>Your report preview will appear here once you fill out the form.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Commutation rates from Finance Division O.M. dated Sep 4, 2001
+        // Based on "Age next birthday"
+        const commutationRates = {
+            20: 40.5043, 21: 39.7341, 22: 38.9653, 23: 38.1974, 24: 37.4307,
+            25: 36.6651, 26: 35.9006, 27: 35.1372, 28: 34.3750, 29: 33.6143,
+            30: 32.8071, 31: 32.0974, 32: 31.3412, 33: 30.5869, 34: 29.8343,
+            35: 29.0841, 36: 28.3362, 37: 27.5908, 38: 26.8482, 39: 26.1009,
+            40: 25.3728, 41: 24.6406, 42: 23.9126, 43: 23.1840, 44: 22.4713,
+            45: 21.7592, 46: 21.0538, 47: 20.3555, 48: 19.6653, 49: 18.9841,
+            50: 18.3129, 51: 17.6526, 52: 17.0050, 53: 16.3710, 54: 15.7517,
+            55: 15.1478, 56: 14.5602, 57: 13.9888, 58: 13.4340, 59: 12.8953,
+            60: 12.3719, 61: 11.8632, 62: 11.3684, 63: 10.8872, 64: 10.4191,
+            65: 9.9639,  66: 9.5214,  67: 9.0914,  68: 8.6742,  69: 8.2697,
+            70: 7.8778,  71: 7.4983,  72: 7.1314,  73: 6.7766,  74: 6.4342,
+            75: 6.1039,  76: 5.7858,  77: 5.4797,  78: 5.1854,  79: 4.9030,
+            80: 4.6321
+        };
+
+        const form = document.getElementById('pension-form');
+        const retirementTypeSelect = document.getElementById('retirementType');
+        const dorContainer = document.getElementById('dor-container');
+
+        function formatDate(date) {
+            if (!date) return 'N/A';
+            const d = new Date(date);
+            const userTimezoneOffset = d.getTimezoneOffset() * 60000;
+            const correctedDate = new Date(d.getTime() + userTimezoneOffset);
+            
+            const day = String(correctedDate.getDate()).padStart(2, '0');
+            const month = String(correctedDate.getMonth() + 1).padStart(2, '0');
+            const year = correctedDate.getFullYear();
+            return `${day}-${month}-${year}`;
+        }
+
+        function calculateAndDisplayReport() {
+            // --- 1. Get all values from form ---
+            const empName = document.getElementById('empName').value.trim() || '[Employee Name]';
+            const fatherName = document.getElementById('fatherName').value.trim() || '[Father Name]';
+            const designation = document.getElementById('designation').value.trim() || '[Designation]';
+            const department = document.getElementById('department').value.trim() || '[Department]';
+            const bps = document.getElementById('bps').value || 'N/A';
+            const dob = document.getElementById('dob').value;
+            const doa = document.getElementById('doa').value;
+            const retirementType = document.getElementById('retirementType').value;
+            let dor = document.getElementById('dor').value;
+            const eolDays = parseFloat(document.getElementById('eol').value) || 0;
+            const pay1 = parseFloat(document.getElementById('pay1').value) || 0;
+            const pay2 = parseFloat(document.getElementById('pay2').value) || 0;
+            const pay3 = parseFloat(document.getElementById('pay3').value) || 0;
+
+            if (!dob || !doa) {
+                 document.getElementById('report-preview-pdf').innerHTML = `<div class="text-center text-gray-500 p-10"><p>Please fill in essential details like DOB and DOA to generate the report.</p></div>`;
+                return;
+            }
+
+            // --- 2. Calculations ---
+            if (retirementType === 'superannuation') {
+                const dobDate = new Date(dob);
+                const superannuationDate = new Date(dobDate.getFullYear() + 60, dobDate.getMonth(), dobDate.getDate());
+                dor = superannuationDate.toISOString().split('T')[0];
+                document.getElementById('dor').value = dor;
+                dorContainer.style.display = 'none';
+            } else {
+                dorContainer.style.display = 'block';
+            }
+             if (!dor) return;
+
+
+            const startDate = new Date(doa);
+            const dorDate = new Date(dor);
+            
+            const inclusiveEndDate = new Date(dorDate);
+            inclusiveEndDate.setDate(inclusiveEndDate.getDate() + 1);
+
+            let years = inclusiveEndDate.getFullYear() - startDate.getFullYear();
+            let months = inclusiveEndDate.getMonth() - startDate.getMonth();
+            let days = inclusiveEndDate.getDate() - startDate.getDate();
+
+            if (days < 0) {
+                months--;
+                const lastMonth = new Date(inclusiveEndDate.getFullYear(), inclusiveEndDate.getMonth(), 0);
+                days += lastMonth.getDate();
+            }
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+            const totalService = `${years}Y - ${months}M - ${days}D`;
+            const eolPeriod = eolDays > 0 ? `${eolDays} days` : 'Nill';
+            const totalServiceInDays = (years * 365.25) + (months * 30.44) + days;
+            const netServiceInDays = totalServiceInDays - eolDays;
+            let netQualifyingServiceYears = Math.round(netServiceInDays / 365.25);
+            netQualifyingServiceYears = Math.min(netQualifyingServiceYears, 30);
+
+            let lastJulyYear = dorDate.getFullYear();
+            if (dorDate.getMonth() < 6) { 
+                lastJulyYear--;
+            }
+            const year1 = lastJulyYear - 2;
+            const year2 = lastJulyYear - 1;
+            const year3 = lastJulyYear;
+            
+            document.querySelector('label[for="pay1"]').innerText = `Pay in July ${year1}`;
+            document.querySelector('label[for="pay2"]').innerText = `Pay in July ${year2}`;
+            document.querySelector('label[for="pay3"]').innerText = `Pay in July ${year3}`;
+            
+            const averagePay = pay1 > 0 && pay2 > 0 && pay3 > 0 ? (pay1 + pay2 + pay3) / 3 : 0;
+            const grossPension = (averagePay * netQualifyingServiceYears * 7) / 300;
+            const netPension = grossPension * 0.75;
+            const commutedPension = grossPension * 0.25;
+
+            const dobDate = new Date(dob);
+            let age = dorDate.getFullYear() - dobDate.getFullYear();
+            const m = dorDate.getMonth() - dobDate.getMonth();
+            if (m < 0 || (m === 0 && dorDate.getDate() < dobDate.getDate())) {
+                 age--;
+            }
+            const ageForRate = age + 1;
+            const commutationRate = commutationRates[ageForRate] || 0;
+            const commutationAmount = commutedPension * 12 * commutationRate;
+
+            const bpsValue = parseInt(bps) || 0;
+            let medicalAllowance;
+            let medAllowPercent;
+
+            if (bpsValue >= 16 && bpsValue <= 22) {
+                medicalAllowance = netPension * 0.20;
+                medAllowPercent = 20;
+            } else {
+                medicalAllowance = netPension * 0.25;
+                medAllowPercent = 25;
+            }
+            
+            const increase_2010 = medicalAllowance * 0.25;
+            const monthlyPensionTotal = netPension + medicalAllowance + increase_2010;
+
+            const pensionStartDate = new Date(dorDate);
+            pensionStartDate.setDate(pensionStartDate.getDate() + 1);
+            const pensionWef = formatDate(pensionStartDate.toISOString());
+
+            // --- 3. Render HTML Report ---
+            const retirementStatus = retirementType === 'death' ? 'Late' : 'Retired';
+            const retirementTypeEnglish = {
+                volunteer: 'Volunteer',
+                death: 'Death',
+                superannuation: 'Superannuation'
+            }[retirementType];
+            const subjectDesc = `Pension / Family Pension Case of Mr. ${empName} S/O ${fatherName}, ${designation} (BS-${bps}), ${retirementStatus} Official of ${department}.`;
+            
+            function formatNumber(num) {
+                 return num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+
+            const reportHTML = `
+                <div class="mb-8 block sm:flex">
+                    <span class="font-bold shrink-0 mb-2 sm:mb-0">Subject:</span>
+                    <p class="sm:ml-4 sm:pl-2 sm:border-l-2 border-gray-200 text-sm">${subjectDesc}</p>
+                </div>
+
+                <table class="w-full text-xs sm:text-sm">
+                    <tbody class="divide-y divide-gray-200">
+                        <tr><td class="px-2">Designation and BPS:</td><td class="px-2 text-right">${designation} (BS-${bps})</td></tr>
+                        <tr><td class="px-2">Date of Birth:</td><td class="px-2 text-right">${formatDate(dob)}</td></tr>
+                        <tr><td class="px-2">Date of Appointment:</td><td class="px-2 text-right">${formatDate(doa)}</td></tr>
+                        <tr><td class="px-2">Date of Retirement:</td><td class="px-2 text-right">${formatDate(dor)} <span class="ml-2 font-normal">(${retirementTypeEnglish})</span></td></tr>
+                        <tr><td class="px-2">Total Length of Service:</td><td class="px-2 text-right">${totalService}</td></tr>
+                        <tr><td class="px-2">EOL Period:</td><td class="px-2 text-right">${eolPeriod}</td></tr>
+                        <tr class="highlight-row"><td class="px-2 font-bold">Net Qualifying Service:</td><td class="px-2 text-right font-bold">${netQualifyingServiceYears} Years</td></tr>
+                        
+                        <tr>
+                            <td class="px-2 pt-6">Last Pay Drawn:</td>
+                            <td class="px-2 pt-6 text-right">
+                                <div class="flex flex-col items-end">
+                                    <span>July ${year1}: <span class="font-semibold">${formatNumber(pay1)}</span></span>
+                                    <span>July ${year2}: <span class="font-semibold">${formatNumber(pay2)}</span></span>
+                                    <span>July ${year3}: <span class="font-semibold">${formatNumber(pay3)}</span></span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="highlight-row"><td class="px-2 align-middle">The last 03 years average basic pay...</td><td class="px-2 text-right font-semibold align-middle">${formatNumber(averagePay)}</td></tr>
+                        <tr><td class="px-2">Gross Pension:</td><td class="px-2 text-right">${formatNumber(grossPension)}/- <small class="opacity-70 block">(Avg Pay * Net Service * 7)/300</small></td></tr>
+                        <tr><td class="px-2">Net Pension @75%:</td><td class="px-2 text-right">${formatNumber(netPension)}/-</td></tr>
+                        <tr><td class="px-2">Commuted Pension @25%:</td><td class="px-2 text-right">${formatNumber(commutedPension)}/-</td></tr>
+                        <tr><td class="px-2">Rate of Commutation (Age ${ageForRate}):</td><td class="px-2 text-right">${commutationRate}</td></tr>
+                        <tr class="highlight-row"><td class="px-2 font-bold">Commutation Amount:</td><td class="px-2 text-right font-bold text-base sm:text-lg">${formatNumber(commutationAmount)}/- <small class="opacity-70 block font-normal">(${formatNumber(commutedPension)}*12*${commutationRate})</small></td></tr>
+                        
+                         <tr class="highlight-row">
+                            <td class="px-2 pt-6 font-bold">Monthly Pension:</td>
+                            <td class="px-2 pt-6 text-right">
+                                <div class="font-bold text-base sm:text-lg">${formatNumber(monthlyPensionTotal)}/-</div>
+                                <div class="text-xs mt-1 text-right">
+                                    Net Pension: ${formatNumber(netPension)}<br>
+                                    + Med. Allow. @ ${medAllowPercent}%: ${formatNumber(medicalAllowance)}<br>
+                                    + Addl. Allow. @ 25%: ${formatNumber(increase_2010)}
+                                </div>
+                            </td>
+                        </tr>
+                        <tr><td class="px-2">Monthly Pension w.e.f:</td><td class="px-2 text-right">${pensionWef}</td></tr>
+                    </tbody>
+                </table>
+            `;
+            document.getElementById('report-preview-pdf').innerHTML = reportHTML;
+        }
+        
+        document.getElementById('downloadPdf').addEventListener('click', () => {
+            const reportElement = document.getElementById('report-preview-pdf');
+            const empName = document.getElementById('empName').value || 'report';
+            if (!document.getElementById('dob').value) {
+                alert('Please fill the form before downloading the PDF.');
+                return;
+            }
+
+            const originalPadding = reportElement.style.padding;
+            reportElement.style.padding = '20px'; 
+            
+            html2canvas(reportElement, {
+                 scale: 3, 
+                 useCORS: true,
+                 logging: false,
+                 width: reportElement.scrollWidth,
+                 height: reportElement.scrollHeight,
+                 backgroundColor: '#ffffff'
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png', 1.0);
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({
+                    orientation: 'p',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                const canvasWidth = canvas.width;
+                const canvasHeight = canvas.height;
+                const ratio = canvasWidth / canvasHeight;
+                const margin = 15;
+                const contentWidth = pdfWidth - (margin * 2);
+                let contentHeight = contentWidth / ratio;
+                let topMargin = margin;
+                
+                if (contentHeight > pdfHeight - (margin * 2)) {
+                   contentHeight = pdfHeight - (margin * 2);
+                }
+
+                pdf.addImage(imgData, 'PNG', margin, topMargin, contentWidth, contentHeight);
+                pdf.save(`Pension-Report-${empName.replace(/\s/g, '-')}.pdf`);
+                reportElement.style.padding = originalPadding;
+
+            }).catch(err => {
+                console.error("Error generating PDF:", err);
+                reportElement.style.padding = originalPadding;
+            });
+        });
+
+        form.addEventListener('input', calculateAndDisplayReport);
+        retirementTypeSelect.addEventListener('change', calculateAndDisplayReport);
+        document.addEventListener('DOMContentLoaded', () => {
+             calculateAndDisplayReport(); 
+        });
+    </script>
+</body>
+</html>
